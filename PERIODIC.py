@@ -1,5 +1,5 @@
 from ti_draw import *
-
+from ti_system import *
 nonmetal_color=(200,255,200)
 E=[
      ("Hydrogen",1,"H",1.00784,0,1,"1s",32,1312,2.2,0.000082,-259.16,252.879,"Gas",1,1766),
@@ -71,37 +71,68 @@ def boxpos(a):
 
     return (sx, sy)
 
-set_color(200,200,200)
+def draw_box(a, selected=False): #finally putting abstraction to use lol
+    pos = boxpos(a)
+    x, y = pos[0], pos[1]
 
-for i in range(119): # i forgor how many elements there are, thanks google
-    temp = boxpos(i)
-    set_color(85, 85, 85)
-    draw_rect(temp[0], temp[1], size, size)
-    if i in nm:
+    get_color(a)
+    fill_rect(x, y, size, size)
+
+    if selected:
+        set_color(0, 0, 0)
+        draw_rect(x, y, size, size)
+        draw_rect(x + 1, y + 1, size - 2, size - 2)
+    else:
+        set_color(85, 85, 85)
+        draw_rect(x, y, size, size)
+
+def get_color(a):
+    if a in nm:
         set_color(0, 240, 0)
-    elif i in hg:
+    elif a in hg:
         set_color(0, 222, 191)
-    elif i in ng:
+    elif a in ng:
         set_color(143, 170, 255)
-    elif i in am:
+    elif a in am:
         set_color(255,171,0)
-    elif i in aem:
+    elif a in aem:
         set_color(255,255,0)
-    elif i in met:
+    elif a in met:
         set_color(83, 207, 144)
-    elif i in post:
+    elif a in post:
         set_color(161, 188, 175)
-    elif i in tm:
+    elif a in tm:
         set_color(224, 156, 160)
-    elif i in lan:
+    elif a in lan:
         set_color(255, 171, 144)
-    elif i in act:
+    elif a in act:
         set_color(224, 171, 207)
     else:
         set_color(240, 240, 240)
-    fill_rect(temp[0], temp[1], size, size)
+    
+def replace_selection(prev, new):
+    draw_box(prev, selected=False)
+    draw_box(new, selected=True)
+
+for i in range(119): # i forgor how many elements there are, thanks google
+    draw_box(i, selected=(i == 1))
+
 show_draw()
+prev_selected = 0
 selected = 1
+
 while True:
-    key = get_key()
+    key = get_key(0)
+
+    if key == 0:
+        continue
+    if key == 24: #left
+        prev_selected = selected
+        selected -= 1
+        replace_selection(prev_selected, selected)
+    if key == 26: #right
+        prev_selected = selected
+        selected += 1
+        replace_selection(prev_selected, selected)
+    
     
