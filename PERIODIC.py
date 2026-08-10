@@ -127,10 +127,14 @@ while True:
     if key == 0:
         continue
     if key == 24: #left
+        if selected == 1:
+            continue
         prev_selected = selected
         selected -= 1
         replace_selection(prev_selected, selected)
     if key == 26: #right
+        if selected == 118:
+            continue
         prev_selected = selected
         selected += 1
         replace_selection(prev_selected, selected)
