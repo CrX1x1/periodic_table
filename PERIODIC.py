@@ -23,12 +23,31 @@ tm = (
 lan = tuple(range(57, 72)) # lanthanides (57-71)
 act = tuple(range(89, 104)) # actinides (89-103)
 
+class state:
+    table = 0
+    info = 1
+    list = 2
+    graph = 3
+
+class type:
+    atomic_number = 0
+    name = 1
+    symbol = 2
+    atomic_mass = 3
+    electronegativity = 4
+    ionization_energy = 5
+    atomic_radius = 6
+    melting_point = 7
+    boiling_point = 8
+    density = 9
+    phase_at_room_temp = 10
+    year_discovered = 11
 
 size=17
 sx=6
 sy=7
 
-def boxpos(a):
+def boxpos(a): # why did this take so long
     if a == 1:
         return (sx, sy)
     if a == 2:
@@ -86,7 +105,7 @@ def draw_box(a, selected=False): #finally putting abstraction to use lol
         set_color(85, 85, 85)
         draw_rect(x, y, size, size)
 
-def get_color(a):
+def get_color(a): #had to use some dumb screenshot from the calculator as ref
     if a in nm:
         set_color(0, 240, 0)
     elif a in hg:
@@ -112,31 +131,102 @@ def get_color(a):
     
 def replace_selection(prev, new):
     draw_box(prev, selected=False)
+    clear_rect(40, 0, 140, 50)
     draw_box(new, selected=True)
+    #todo: draw element info
 
-for i in range(119): # i forgor how many elements there are, thanks google
+
+for i in range(1, 119): # i forgor how many elements there are, thanks google
     draw_box(i, selected=(i == 1))
 
 show_draw()
 prev_selected = 0
 selected = 1
-
+current_state = state.table
 while True:
-    key = get_key(0)
+    if current_state == state.table:
+        key = get_key(0)
 
-    if key == 0:
-        continue
-    if key == 24: #left
-        if selected == 1:
+        if key == 0:
             continue
-        prev_selected = selected
-        selected -= 1
-        replace_selection(prev_selected, selected)
-    if key == 26: #right
-        if selected == 118:
-            continue
-        prev_selected = selected
-        selected += 1
-        replace_selection(prev_selected, selected)
+        if key == 24: #left
+            if selected == 1:
+                continue
+            prev_selected = selected
+            selected -= 1
+            replace_selection(prev_selected, selected)
+        if key == 26: #right
+            if selected == 118:
+                continue
+            prev_selected = selected
+            selected += 1
+            replace_selection(prev_selected, selected)
+        if key == 25: #up, save my sanity
+            if selected in (1, 2, 4, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 5, 6, 7, 8, 9):
+                continue
+            if selected == 3:
+                prev_selected = selected
+                selected = 1
+                replace_selection(prev_selected, selected)
+                continue
+            if selected == 10:
+                prev_selected = selected
+                selected = 2
+                replace_selection(prev_selected, selected)
+                continue
+            if 11 <= selected <= 20:
+                prev_selected = selected
+                selected -= 8
+                replace_selection(prev_selected, selected)
+                continue
+            if 31 <= selected <= 56:
+                prev_selected = selected
+                selected -= 18
+                replace_selection(prev_selected, selected)
+                continue
+            if 57 <= selected <= 71:
+                prev_selected = selected
+                selected += 47
+                replace_selection(prev_selected, selected)
+                continue
+            if 72 <= selected <= 118:
+                prev_selected = selected
+                selected -= 32
+                replace_selection(prev_selected, selected)
+                continue
+        if key == 34: #down
+            if 87 <= selected <= 103 or selected == 39:
+                continue
+            if selected == 1:
+                prev_selected = selected
+                selected = 3
+                replace_selection(prev_selected, selected)
+                continue
+            if selected == 2:
+                prev_selected = selected
+                selected = 10
+                replace_selection(prev_selected, selected)
+                continue
+            if 3 <= selected <= 12:
+                prev_selected = selected
+                selected += 8
+                replace_selection(prev_selected, selected)
+                continue
+            if 13 <= selected <= 38:
+                prev_selected = selected
+                selected += 18
+                replace_selection(prev_selected, selected)
+                continue
+            if 40 <= selected <= 86:
+                prev_selected = selected
+                selected += 32
+                replace_selection(prev_selected, selected)
+                continue
+            if 104 <= selected <= 118:
+                prev_selected = selected
+                selected -= 47
+                replace_selection(prev_selected, selected)
+                continue
+
     
     
