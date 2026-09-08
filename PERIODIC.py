@@ -1,7 +1,9 @@
 from ti_draw import *
 from ti_system import *
+from ti_graphics import *
 nonmetal_color=(200,255,200)
 E=[
+     (),
      ("Hydrogen",1,"H",1.00784,0,1,"1s",32,1312,2.2,0.000082,-259.16,252.879,"Gas",1,1766),
      
      ("Helium",2,"He",4.002602,2,2,"1s**2",37,2372,"N/A",0.000164,"N/A",-268.928,"Gas","N/A",1868)
@@ -30,8 +32,8 @@ class state:
     graph = 3
 
 class type:
-    atomic_number = 0
-    name = 1
+    name = 0
+    atomic_number = 1
     symbol = 2
     atomic_mass = 3
     electronegativity = 4
@@ -131,22 +133,37 @@ def get_color(a): #had to use some dumb screenshot from the calculator as ref
     
 def replace_selection(prev, new):
     draw_box(prev, selected=False)
-    clear_rect(40, 0, 140, 50)
+    clear_rect(40, 0, 160, 50)
     draw_box(new, selected=True)
-    #todo: draw element info
-
+    try:
+        draw_text(75, 25, str(E[new][0]))
+        draw_text(75, 50, str(E[new][1]))
+        draw_text(160, 50, str(E[new][2]))
+    except IndexError:
+        draw_text(75, 25, "N/A")
+        draw_text(75, 50, "N/A")
+        draw_text(160, 50, "N/A")
+def drawSoftkey(size, pos, text):
+    #todo
 
 for i in range(1, 119): # i forgor how many elements there are, thanks google
     draw_box(i, selected=(i == 1))
 
-show_draw()
 prev_selected = 0
 selected = 1
 current_state = state.table
+setFont(2)
+replace_selection(prev_selected, selected)
+softkeys_drawn = False
 while True:
     if current_state == state.table:
-        key = get_key(0)
-
+        key = getKey(0)
+        if softkeys_drawn == False:
+            #stub
+            drawSoftkey(1, "Info")
+            drawSoftkey(2, "List")
+            drawSoftkey(3, "Graph")
+            softkeys_drawn = True
         if key == 0:
             continue
         if key == 24: #left
@@ -164,69 +181,41 @@ while True:
         if key == 25: #up, save my sanity
             if selected in (1, 2, 4, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 5, 6, 7, 8, 9):
                 continue
+            prev_selected = selected
             if selected == 3:
-                prev_selected = selected
                 selected = 1
-                replace_selection(prev_selected, selected)
-                continue
-            if selected == 10:
-                prev_selected = selected
+            elif selected == 10:
                 selected = 2
-                replace_selection(prev_selected, selected)
-                continue
-            if 11 <= selected <= 20:
-                prev_selected = selected
+            elif 11 <= selected <= 20:
                 selected -= 8
-                replace_selection(prev_selected, selected)
-                continue
-            if 31 <= selected <= 56:
-                prev_selected = selected
+            elif 31 <= selected <= 56:
                 selected -= 18
-                replace_selection(prev_selected, selected)
-                continue
-            if 57 <= selected <= 71:
-                prev_selected = selected
+            elif 57 <= selected <= 71:
                 selected += 47
-                replace_selection(prev_selected, selected)
-                continue
-            if 72 <= selected <= 118:
-                prev_selected = selected
-                selected -= 32
-                replace_selection(prev_selected, selected)
-                continue
+            elif 72 <= selected <= 118:
+                selected -= 32    
+            replace_selection(prev_selected, selected)
+            continue
         if key == 34: #down
             if 87 <= selected <= 103 or selected == 39:
                 continue
+            prev_selected = selected
             if selected == 1:
-                prev_selected = selected
                 selected = 3
-                replace_selection(prev_selected, selected)
-                continue
-            if selected == 2:
-                prev_selected = selected
+            elif selected == 2:
                 selected = 10
-                replace_selection(prev_selected, selected)
-                continue
-            if 3 <= selected <= 12:
-                prev_selected = selected
+            elif 3 <= selected <= 12:
                 selected += 8
-                replace_selection(prev_selected, selected)
-                continue
-            if 13 <= selected <= 38:
-                prev_selected = selected
+            elif 13 <= selected <= 38:
                 selected += 18
-                replace_selection(prev_selected, selected)
-                continue
-            if 40 <= selected <= 86:
-                prev_selected = selected
+            elif 40 <= selected <= 86:
                 selected += 32
-                replace_selection(prev_selected, selected)
-                continue
-            if 104 <= selected <= 118:
-                prev_selected = selected
+            elif 104 <= selected <= 118:  
                 selected -= 47
-                replace_selection(prev_selected, selected)
-                continue
+            replace_selection(prev_selected, selected)
+            continue
+                
+                
 
     
     
