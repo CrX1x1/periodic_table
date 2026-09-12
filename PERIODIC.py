@@ -144,7 +144,10 @@ def replace_selection(prev, new):
         draw_text(75, 50, "N/A")
         draw_text(160, 50, "N/A")
 def drawSoftkey(size, pos, text):
-    #todo
+    width = size*62
+    x = (pos-1)*63+3
+    draw_rect(x, 210, width, 40)
+    draw_text(x+10, 235, str(text))
 
 for i in range(1, 119): # i forgor how many elements there are, thanks google
     draw_box(i, selected=(i == 1))
@@ -160,9 +163,9 @@ while True:
         key = getKey(0)
         if softkeys_drawn == False:
             #stub
-            drawSoftkey(1, "Info")
-            drawSoftkey(2, "List")
-            drawSoftkey(3, "Graph")
+            drawSoftkey(2, 1, "Info")
+            drawSoftkey(1, 3, "List")
+            drawSoftkey(1, 5, "Graph")
             softkeys_drawn = True
         if key == 0:
             continue
