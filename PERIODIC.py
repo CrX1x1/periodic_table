@@ -1,6 +1,7 @@
 from ti_draw import *
 from ti_system import *
 from ti_graphics import *
+from math import *
 nonmetal_color=(200,255,200)
 E=[
      (),
@@ -30,7 +31,7 @@ class state:
     info = 1
     list = 2
     graph = 3
-
+    splash = 4
 class type:
     name = 0
     atomic_number = 1
@@ -137,35 +138,96 @@ def replace_selection(prev, new):
     draw_box(new, selected=True)
     try:
         draw_text(75, 25, str(E[new][0]))
-        draw_text(75, 50, str(E[new][1]))
-        draw_text(160, 50, str(E[new][2]))
+        draw_text(160, 50, str(E[new][1]))
+        draw_text(75, 50, str(E[new][2]))
     except IndexError:
         draw_text(75, 25, "N/A")
         draw_text(75, 50, "N/A")
         draw_text(160, 50, "N/A")
 def drawSoftkey(size, pos, text):
-    width = size*62
-    x = (pos-1)*63+3
-    draw_rect(x, 210, width, 40)
-    draw_text(x+10, 235, str(text))
+    width = size * 62 + (size - 1)
+    x = (pos - 1) * 62 + 5 #crunch them numbers
+    set_pen("medium","solid")
+    draw_rect(x, 210-20, width, 40)
+    draw_text(x+5, 212, str(text))
+    set_pen("thin","solid")
+def draw_table():
+    for i in range(1, 119): # i forgor how many elements there are, thanks google
+        draw_box(i, selected=(i == 1))
+def draw_splash():
+    set_color(0, 0, 0)
+    draw_text(100, 100, "Periodic Table")
+    setFont(4)
+    draw_text(160, 120, "V7.0.0.3996")
+    draw_text(120, 200, "PRESS ANY KEY")
+    draw_text(120, 213, "©2026 CrX1x1")
+    setFont(2)
 
-for i in range(1, 119): # i forgor how many elements there are, thanks google
-    draw_box(i, selected=(i == 1))
 
 prev_selected = 0
 selected = 1
-current_state = state.table
+current_state = state.splash
 setFont(2)
-replace_selection(prev_selected, selected)
 softkeys_drawn = False
+table_drawn = False
+splash_drawn = False
 while True:
+    key = getKey(0)
+    if current_state == state.splash:
+        if not splash_drawn:
+            #draw static text, of course
+            draw_splash()
+            splash_drawn = True
+        # animation that i made on-calculator when i got bored
+        cx = 40
+        cy = 90
+        orbit_rad = 30
+        electron_rad = 3
+
+        set_color(255, 0, 0)
+        fill_circle(cx, cy, 5)  # draw the singular proton in the center
+
+        # plus sign
+        set_color(255, 255, 255)
+        draw_line(cx-2, cy, cx+2, cy)
+        draw_line(cx, cy-2, cx, cy+2)
+
+        # draw the electron orbit
+        set_color(100, 100, 100)
+        draw_circle(cx, cy, orbit_rad)
+
+        #previous pos
+        prev_ex = cx + orbit_rad
+        prev_ey = cy
+
+        while True:
+            for deg in range(0, 360, 5):
+                key = getKey(0)
+                if key != 0:
+                    break
+                angle = radians(deg)
+                ex = cx + orbit_rad * cos(angle)
+                ey = cy + orbit_rad * sin(angle)
+                clear_rect(prev_ex - electron_rad, prev_ey - electron_rad - 1, (electron_rad * 2) + 2, (electron_rad * 2) + 2)
+                set_color(100, 100, 100)
+                draw_circle(cx, cy, orbit_rad)
+                set_color(0, 0, 255)
+                fill_circle(ex, ey, electron_rad)
+                prev_ex, prev_ey = ex, ey
+            if key != 0:
+                break
+        clear()
+        current_state = state.table
     if current_state == state.table:
-        key = getKey(0)
-        if softkeys_drawn == False:
-            #stub
-            drawSoftkey(2, 1, "Info")
-            drawSoftkey(1, 3, "List")
-            drawSoftkey(1, 5, "Graph")
+        if not table_drawn:
+            draw_table()
+            replace_selection(prev_selected, selected)
+            table_drawn = True
+        if not softkeys_drawn:
+            drawSoftkey(2, 1, "OPTIONS")
+            drawSoftkey(1, 3, "LIST")
+            drawSoftkey(1, 4, "INFO")
+            drawSoftkey(1, 5, "QUIT")
             softkeys_drawn = True
         if key == 0:
             continue
@@ -217,8 +279,16 @@ while True:
                 selected -= 47
             replace_selection(prev_selected, selected)
             continue
-                
-                
-
-    
-    
+        if key in (11, 12): # y= and window
+            #todo
+            pass
+        if key == 13: # zoom
+            #todo
+            pass
+        if key == 14: # trace
+            #splash screen
+            clear()
+            current_state = state.splash
+        if key == 15: # graph
+            #quit
+            break
