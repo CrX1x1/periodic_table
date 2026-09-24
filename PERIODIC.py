@@ -2,7 +2,7 @@ from ti_draw import *
 from ti_system import *
 from ti_graphics import *
 from math import *
-nonmetal_color=(200,255,200)
+selected_color=(2,107,249)#so i don't forget what color the Evo uses for selected stuff in text
 E=[
      (),
      ("Hydrogen",1,"H",1.00784,0,1,"1s",32,1312,2.2,0.000082,-259.16,252.879,"Gas",1,1766),
@@ -154,6 +154,10 @@ def drawSoftkey(size, pos, text):
 def draw_table():
     for i in range(1, 119): # i forgor how many elements there are, thanks google
         draw_box(i, selected=(i == 1))
+    #fork looking thing from the CE
+    draw_rect(48,100, 1, 60)
+    draw_rect(48, 160, 8, 1)
+    draw_rect(48, 143, 8, 1)
 def draw_splash():
     set_color(0, 0, 0)
     draw_text(100, 100, "Periodic Table")
@@ -162,22 +166,40 @@ def draw_splash():
     draw_text(120, 200, "PRESS ANY KEY")
     draw_text(120, 213, "©2026 CrX1x1")
     setFont(2)
-
+def draw_text_row(y, align, text, is_selected, height=18): 
+    
+    if align=="middle":
+        text_x=160-(6*len(text))
+    else:
+        text_x=160-(str(text).index(align)+1)*12
+    if is_selected:
+        set_color(0,0,0)
+    else:
+        set_color(255,255,255)
+    fill_rect(text_x,y-(height+1),len(text)*12,height)
+    if is_selected:
+        set_color(255,255,255)
+    else:
+        set_color(0,0,0)
+    draw_text(text_x,y,text)
+def replace_text_selection(prev, new):
+    draw_text_row(60, ":", info_rows[prev], False)
+    draw_text_row(60, ":", info_rows[new], True)
 
 prev_selected = 0
 selected = 1
 current_state = state.splash
 setFont(2)
-softkeys_drawn = False
-table_drawn = False
-splash_drawn = False
+stuff_drawn = False
+prev_list_pos = 0
+list_pos = 0
 while True:
     key = getKey(0)
     if current_state == state.splash:
-        if not splash_drawn:
+        if not stuff_drawn:
             #draw static text, of course
             draw_splash()
-            splash_drawn = True
+            stuff_drawn = True
         # animation that i made on-calculator when i got bored
         cx = 40
         cy = 90
@@ -215,20 +237,19 @@ while True:
                 fill_circle(ex, ey, electron_rad)
                 prev_ex, prev_ey = ex, ey
             if key != 0:
+                stuff_drawn = False
                 break
         clear()
         current_state = state.table
     if current_state == state.table:
-        if not table_drawn:
+        if not stuff_drawn:
             draw_table()
             replace_selection(prev_selected, selected)
-            table_drawn = True
-        if not softkeys_drawn:
             drawSoftkey(2, 1, "OPTIONS")
             drawSoftkey(1, 3, "LIST")
             drawSoftkey(1, 4, "INFO")
             drawSoftkey(1, 5, "QUIT")
-            softkeys_drawn = True
+            stuff_drawn = True
         if key == 0:
             continue
         if key == 24: #left
@@ -289,6 +310,61 @@ while True:
             #splash screen
             clear()
             current_state = state.splash
+            stuff_drawn = False
         if key == 15: # graph
             #quit
             break
+        if key == 105:
+            #enter
+            clear()
+            current_state = state.info
+            stuff_drawn = False
+    if current_state == state.info:
+        charsize = 12 #measurement of how many pixels a character takes up horizontally, will do later, placeholder
+        if not stuff_drawn:
+            drawSoftkey(1, 1, "SET")
+            drawSoftkey(1, 2, "HELP")
+            drawSoftkey(1, 3, "LIST")
+            drawSoftkey(1, 4, "TBL")
+            drawSoftkey(1, 5, "QUIT")
+            set_pen("thin","solid")
+            
+            get_color(selected)
+            fill_rect(6, 4, 308, 30)
+            set_color(0, 0, 0)
+            draw_rect(6, 38, 308, 145)
+            draw_rect(6, 4, 308, 30)
+            draw_text(160 - (len(str(E[selected][0])) * charsize // 2), 26, str(E[selected][0]))
+            stuff_drawn = True
+            text_drawn = False
+        if not text_drawn:
+            
+            #clear_rect()
+            if list_pos in range(0, 6):
+                draw_text_row(60, ":", "ATOMIC #: "+str(E[selected][1]), list_pos == 0)
+                draw_text_row(80, ":", "SYMBOL: "+str(E[selected][2]), list_pos == 1)
+                draw_text_row(100, ":", "WEIGHT: "+str(E[selected][3]), list_pos == 2)
+                draw_text_row(120, ":", "NEUTRONS: "+str(E[selected][4]), list_pos == 3)
+                draw_text_row(140, ":", "PROTONS: "+str(E[selected][5]), list_pos == 4)
+                draw_text_row(170, "middle", str(E[selected][6]), list_pos == 5, 20)
+
+            text_drawn = True
+        if key == 25:# up
+            if list_pos == 0:
+                continue
+            prev_list_pos = list_pos
+            list_pos -= 1
+            text_drawn = False
+        if key == 34:# down
+            if list_pos == 6:
+                continue
+            prev_list_pos = list_pos
+            list_pos += 1
+            text_drawn = False
+        if key == 15:
+             break
+        if key == 14:
+            text_drawn = False
+            stuff_drawn = False
+            clear()
+            current_state = state.table
