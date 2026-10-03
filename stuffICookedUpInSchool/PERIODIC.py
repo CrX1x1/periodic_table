@@ -2,12 +2,22 @@ from ti_draw import *
 from ti_system import *
 from ti_graphics import *
 from math import *
-nonmetal_color=(200,255,200)
+selected_color=(2,107,249)#so i don't forget what color the Evo uses for selected stuff in text
 E=[
      (),
-     ("Hydrogen",1,"H",1.00784,0,1,"1s",32,1312,2.2,0.000082,-259.16,252.879,"Gas",1,1766),
+     ("Hydrogen",1,"H",1.00784,0,1,"1s",32,1312,2.2,0.000082,-259.16,-252.879,"Gas",1,1766),#dum float inaccuracy smh, how tf did it turn into 8.20000... oh, right, E/sci notation
      
-     ("Helium",2,"He",4.002602,2,2,"1s**2",37,2372,"N/A",0.000164,"N/A",-268.928,"Gas","N/A",1868)
+     ("Helium",2,"He",4.002602,2,2,"1s**2",37,2372,"N/A",0.000164,"N/A",-268.928,"Gas","N/A",1868),
+     
+     ("Lithium",3,"Li",6.938,4,3,"1s**2 2s",130,520,"0.98",0.534,180.5,1342,"Solid",1,1817),
+     
+     ("Beryllium",4,"Be",9.12182,5,4,"1s**2 2s**2",99,899,1.57,1.85,1287,2468,"Solid",2,1828),
+     
+     ("Boron",5,"B",10.806,6,5,"1s2 2s2 2p",84,801,2.04,2.34,2077,4000,"Solid",3,1808),
+     
+     ("Carbon",6,"C",12.0096,6,6,"1s2 2s2 2p2",75,1086,2.55,2.2,"N/A",3825,"Solid","+-4(2)","ANCIENT"),
+     
+     ("Nitrogen",7,"N",14.00643,7,7,"1s2 2s2 2p3",71,1402,3.04,0.001145,-210.0,-195.795,"Gas","+-3(5,4,2)",1772)
 ]
 #types of elements
 nm = (1, 6, 7, 8, 15, 16, 34) # reactive nonmetals
@@ -153,7 +163,7 @@ def drawSoftkey(size, pos, text):
     set_pen("thin","solid")
 def draw_table():
     for i in range(1, 119): # i forgor how many elements there are, thanks google
-        draw_box(i, selected=(i == 1))
+        draw_box(i, selected=(i == selected))
     #fork looking thing from the CE
     draw_rect(48,100, 1, 60)
     draw_rect(48, 160, 8, 1)
@@ -163,10 +173,10 @@ def draw_splash():
     draw_text(100, 100, "Periodic Table")
     setFont(4)
     draw_text(160, 120, "V7.0.0.3996")
-    draw_text(120, 200, "PRESS ANY KEY")
-    draw_text(120, 213, "©2026 CrX1x1")
+    draw_text(110, 200, "PRESS ANY KEY")
+    draw_text(114, 213, "©2026 CrX1x1")
     setFont(2)
-def draw_text_row(y, align, text, is_selected):
+def draw_text_row(y, align, text, is_selected, height=18): 
     
     if align=="middle":
         text_x=160-(6*len(text))
@@ -176,17 +186,23 @@ def draw_text_row(y, align, text, is_selected):
         set_color(0,0,0)
     else:
         set_color(255,255,255)
-    fill_rect(text_x,y-16,len(text)*12,16)
+    fill_rect(text_x-2,y-(height+1),len(text)*12+3,height+1)
     if is_selected:
         set_color(255,255,255)
     else:
         set_color(0,0,0)
     draw_text(text_x,y,text)
+    set_color(0,0,0)
+def replace_text_selection(prev, new):
+    draw_text_row(60, ":", info_rows[prev], False)
+    draw_text_row(60, ":", info_rows[new], True)
+
 prev_selected = 0
 selected = 1
-current_state = state.info
+current_state = state.splash
 setFont(2)
 stuff_drawn = False
+prev_list_pos = 0
 list_pos = 0
 while True:
     key = getKey(0)
@@ -316,7 +332,6 @@ while True:
             stuff_drawn = False
     if current_state == state.info:
         charsize = 12 #measurement of how many pixels a character takes up horizontally, will do later, placeholder
-        text_drawn = False #internal version of the stuff_drawn var i guess, will be in use later
         if not stuff_drawn:
             drawSoftkey(1, 1, "SET")
             drawSoftkey(1, 2, "HELP")
@@ -330,23 +345,66 @@ while True:
             set_color(0, 0, 0)
             draw_rect(6, 38, 308, 145)
             draw_rect(6, 4, 308, 30)
-            stuff_drawn = True
-
             draw_text(160 - (len(str(E[selected][0])) * charsize // 2), 26, str(E[selected][0]))
+            stuff_drawn = True
+            text_drawn = False
         if not text_drawn:
-            #clear_rect()
-            if list_pos == 0:
-                draw_text_row(60,":","atomic #: ",True)
-                draw_text(76,80,"SYMBOL: "+str(E[selected][2]))
-                draw_text(76,100,"WEIGHT: "+str(E[selected][3]))
-                draw_text(52,120,"NEUTRONS: "+str(E[selected][4]))
-                draw_text(64,140,"PROTONS: "+str(E[selected][5]))
-                draw_text(160 - (len(str(E[selected][6])) * charsize // 2),170, str(E[selected][6]))
-                
+            if list_pos in range(0, 6):
+                draw_text_row(60, ":", "ATOMIC #: "+str(E[selected][1]), list_pos == 0)
+                draw_text_row(80, ":", "SYMBOL: "+str(E[selected][2]), list_pos == 1)
+                draw_text_row(100, ":", "WEIGHT: "+str(E[selected][3]), list_pos == 2)
+                draw_text_row(120, ":", "NEUTRONS: "+str(E[selected][4]), list_pos == 3)
+                draw_text_row(140, ":", "PROTONS: "+str(E[selected][5]), list_pos == 4)
+                draw_text_row(170, "middle", str(E[selected][6]), list_pos == 5, 20)
+            if list_pos in range(6,12):
+                draw_text_row(60, ":", "RADIUS: "+str(E[selected][7]), list_pos == 6)
+                draw_text_row(80, ":", "1ST IONIZE: "+str(E[selected][8]), list_pos == 7)
+                draw_text_row(100, ":", "ELECTRONEG: "+str(E[selected][9]), list_pos == 8)
+                draw_text_row(120, ":", "DENSITY: "+str(E[selected][10]), list_pos == 9)
+                draw_text_row(140, ":", "MELTING PT: "+str(E[selected][11]), list_pos == 10)
+                draw_text_row(160, ":", "BOILING PT: "+str(E[selected][12]), list_pos == 11)
+            if list_pos in range(12,15):
+                draw_text_row(60, ":", "STATE: "+str(E[selected][13]), list_pos == 12)
+                draw_text_row(80, ":", "OX STATES: "+str(E[selected][14]), list_pos == 13)
+                draw_text_row(100, ":", "DISCOVERED: "+str(E[selected][15]), list_pos == 14)
             text_drawn = True
+        if key == 25:# up
+            if list_pos == 0:
+                continue
+            if list_pos in (6,12):
+                 clear_rect(6, 38, 308, 145)
+            prev_list_pos = list_pos
+            list_pos -= 1
+            text_drawn = False
+        if key == 34:# down
+            if list_pos == 14:
+                continue
+            if list_pos in (5,11):
+                clear_rect(6, 38, 308, 145)
+            
+            prev_list_pos = list_pos
+            list_pos += 1
+            text_drawn = False
+        if key == 24: #left
+            if selected == 1:
+                continue
+            prev_selected = selected
+            selected -= 1
+            stuff_drawn = False
+            text_drawn = False
+            clear_rect(6, 38, 308, 145)
+        if key == 26:
+            if selected == (len(E)-1):
+                continue
+            prev_selected = selected
+            selected += 1
+            stuff_drawn = False
+            text_drawn = False
+            clear_rect(6, 38, 308, 145)
         if key == 15:
              break
         if key == 14:
-             stuff_drawn = False
-             clear()
-             current_state = state.table
+            text_drawn = False
+            stuff_drawn = False
+            clear()
+            current_state = state.table
