@@ -9,6 +9,7 @@ A clean, fast Periodic table app for the TI-84 Evo, written in MicroPython.
 > This app is optimized specifically for the TI-84 Evo (ARM Cortex M33 @ 156MHz).
 > 
 > While it still runs on the TI-84 Plus CE **Python** (eZ80 @ 48MHz), performance will be very slow due to low execution speed on less capable silicon(And in that case, you don't even need this app since it already has a native app). If it's unusable on your calculator, your hardware just isn't fast enough. You have been warned!
+<small>Why don't someone go ahead and test the app on the TI-Nspire and tell me if it works or not? 😛</small>
 
 ## Installation and Usage
 
@@ -24,7 +25,7 @@ A clean, fast Periodic table app for the TI-84 Evo, written in MicroPython.
 
 ## Features
 
-- **118-Element Dataset**: Complete data including aromic mass, electron config, and more!
+- **118-Element Dataset**: Complete data including atomic mass, electron config, and more!
 - **Faithful CE-style UI**: Ported over the style of the CE's Periodic Table layout and navigation system from scratch.
 - **Zero Dependencies**: Everything is programmatically drawn with no need for extra image appvars.
 
