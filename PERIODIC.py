@@ -146,6 +146,7 @@ class state:
     list = 2
     graph = 3
     splash = 4
+    select = 5
 class type:
     name = 0
     atomic_number = 1
@@ -300,26 +301,27 @@ def draw_splash():
     draw_text(110, 200, "PRESS ANY KEY")
     draw_text(114, 213, "©2026 CrX1x1")
     setFont(2)
-def draw_text_row(y, align, text, is_selected, height=18): 
-    
+def draw_text_row(y, align, text, is_selected=None, height=18): 
+    align = str(align)
     if align=="middle":
         text_x=160-(6*len(text))
+    elif align.isdigit():
+        text_x = int(align)
     else:
         text_x=160-(str(text).index(align)+1)*12
     if is_selected:
         set_color(0,0,0)
     else:
         set_color(255,255,255)
-    fill_rect(text_x-2,y-(height+1),len(text)*12+3,height+1)
+    if is_selected is not None:
+        fill_rect(text_x-2,y-(height+1),len(text)*12+3,height+1)
     if is_selected:
         set_color(255,255,255)
     else:
         set_color(0,0,0)
     draw_text(text_x,y,text)
     set_color(0,0,0)
-def replace_text_selection(prev, new):
-    draw_text_row(60, ":", info_rows[prev], False)
-    draw_text_row(60, ":", info_rows[new], True)
+#a useless function was here
 def draw_list(start, end, selected): # more AI polishing lol
     if start > end or selected < start or selected > end or start < 1 or end > 118:
         raise ValueError("Invalid range or selected index, selected=%d, start=%d, end=%d" % (selected, start, end))
@@ -344,12 +346,13 @@ def sort_elements(sort_by):
     global E, current_sort
     current_sort = sort_by
 
+    # right, i forgot about the empty tuple i put, thanks AI
     if sort_by == 0:  # Sort by atomic number
-        E = sorted(E, key=lambda x: int(x[1]))
+        E = [E[0]] + sorted(E[1:], key=lambda x: int(x[1]))
     elif sort_by == 1:  # Sort by name
-        E = sorted(E, key=lambda x: x[0])
+        E = [E[0]] + sorted(E[1:], key=lambda x: x[0])
     elif sort_by == 2:  # Sort by symbol
-        E = sorted(E, key=lambda x: x[2])
+        E = [E[0]] + sorted(E[1:], key=lambda x: x[2])
         
 
 
@@ -364,6 +367,11 @@ selectable = True
 current_sort = sort_by.atomic_number
 jmp_str = ""
 items = 9
+title = ""
+options = []
+menu_selected = 0
+return_to = state.table
+callback = None # eh, just in case
 while True:
     key = getKey(0)
     if current_state == state.splash:
@@ -483,7 +491,9 @@ while True:
                 list_start = len(E) - items
             else:
                 list_start = selected
+            current_sort = sort_by.atomic_number
             stuff_drawn = False
+            key = 0
         if key == 14: # trace
             #splash screen
             clear()
@@ -587,6 +597,7 @@ while True:
                 list_start = len(E) - items
             else:
                 list_start = selected
+            current_sort = sort_by.atomic_number
             current_state = state.list
     if current_state == state.list:# ai polished, it failed, and then i ended up doing debugging and patching myself lol
         
@@ -594,10 +605,18 @@ while True:
             list_start = 1
             
         if not stuff_drawn:
+            if menu_selected is not None:
+                if menu_selected == 0:
+                    sort_elements(sort_by.atomic_number)
+                elif menu_selected == 1:
+                    sort_elements(sort_by.name)
+                elif menu_selected == 2:
+                    sort_elements(sort_by.symbol)
+                menu_selected = -1
             draw_list(list_start, min(list_start + items - 1, len(E) - 1), selected)
             set_color(0, 0, 0)
             if current_sort == sort_by.atomic_number:
-                drawSoftkey(3, 1, "RESET") 
+                drawSoftkey(2, 1, "RESET") 
             drawSoftkey(1, 3, "SORT")
             drawSoftkey(1, 4, "TBL")
             drawSoftkey(1, 5, "QUIT")
@@ -620,7 +639,7 @@ while True:
                     list_start = selected - items + 1
                 stuff_drawn = False
                 
-        elif key == 11 and current_sort == sort_by.atomic_number:
+        elif key in (11, 12) and current_sort == sort_by.atomic_number:
             selected = 1
             list_start = 1
             jmp_str = ""
@@ -635,14 +654,53 @@ while True:
             
         elif key == 15:
             break
+        elif key == 13:
+            # select sort
+            return_to = current_state
+            current_state = state.select
+            options = ["ATOMIC NUMBER", "NAME", "SYMBOL"]
+            title = "SORT ELEMENTS BY:"
+            stuff_drawn = False
+            clear()
+
         elif key in numbers:
-            prev_jmp_str = jmp_str
-            jmp_str += str(numbers[key])
-            if jmp_str == "0":
-                jmp_str = prev_jmp_str
-            elif 1 <= int(jmp_str) <= len(E) - 1:
-                selected = int(jmp_str)
-                list_start = min(selected, len(E) - items)
+            if current_sort == sort_by.atomic_number:
+                prev_jmp_str = jmp_str
+                jmp_str += str(numbers[key])
+                if jmp_str == "0":
+                    jmp_str = prev_jmp_str
+                elif 1 <= int(jmp_str) <= len(E) - 1:
+                    selected = int(jmp_str)
+                    list_start = min(selected, len(E) - items)
+                    stuff_drawn = False
+                else:
+                    jmp_str = prev_jmp_str
+    if current_state == state.select:
+        if menu_selected == -1:
+            menu_selected = 0
+        if not stuff_drawn:
+            set_color(0, 0, 0)
+            draw_rect(5, 3, 310, 30)
+            set_color(200,255,200) # mint looks good on title box i guess
+            fill_rect(5, 3, 310, 30)
+            draw_text_row(30, "middle", title)
+            # draw the options list below the title
+            for i, option in enumerate(options):
+                draw_text_row(60 + i * 22, 30, "%s:%s"%(i+1, option), is_selected=(i == menu_selected))
+            stuff_drawn = True
+            
+        if key == 25: # up
+            if menu_selected > 0:
+                menu_selected -= 1
                 stuff_drawn = False
-            else:
-                jmp_str = prev_jmp_str
+        elif key == 34: # down
+            if menu_selected < len(options) - 1:
+                menu_selected += 1
+                stuff_drawn = False
+        elif key == 105: # enter
+            # handle the selection of the current option
+            selected_option = options[menu_selected]
+            stuff_drawn = False
+            current_state = return_to
+            clear()
+        
