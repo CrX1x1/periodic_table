@@ -9,11 +9,21 @@ keymap = {
     pygame.K_UP: 25,
     pygame.K_DOWN: 34,
     pygame.K_RETURN: 105,
-    pygame.K_1: 11,
-    pygame.K_2: 12,
-    pygame.K_3: 13,
-    pygame.K_4: 14,
-    pygame.K_5: 15
+    pygame.K_F1: 11,
+    pygame.K_F2: 12,
+    pygame.K_F3: 13,
+    pygame.K_F4: 14,
+    pygame.K_F5: 15,
+    pygame.K_1: 92,
+    pygame.K_2: 93,
+    pygame.K_3: 94,
+    pygame.K_4: 82,
+    pygame.K_5: 83,
+    pygame.K_6: 84,
+    pygame.K_7: 72,
+    pygame.K_8: 73,
+    pygame.K_9: 74,
+    pygame.K_0: 102
 }
 
 def check():
