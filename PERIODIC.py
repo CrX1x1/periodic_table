@@ -332,16 +332,28 @@ def draw_list(start, end, selected): # more AI polishing lol
         
         if i == selected:
             set_color(0, 0, 0)
+            if alpha:
+                #set color to green for alpha lol
+                set_color(0, 158, 0)
             fill_rect(10, y_pos -18, 300, 22)
             set_color(255, 255, 255)
         else:
             set_color(255, 255, 255)
             fill_rect(10, y_pos -18, 300, 22)
             set_color(0, 0, 0)
-            
-        draw_text(25, y_pos, str(E[i][1])) # atomic number
-        draw_text(65, y_pos, E[i][0])       # element name
-        draw_text(280, y_pos, E[i][2])      # element symbol
+
+        if current_sort == sort_by.atomic_number:
+            draw_text(25, y_pos, str(E[i][1])) # atomic number
+            draw_text(65, y_pos, E[i][0])       # element name
+            draw_text(280, y_pos, E[i][2])      # element symbol
+        elif current_sort == sort_by.name:
+            draw_text(20, y_pos, E[i][0])       # element name
+            draw_text(225, y_pos, str(E[i][1])) # atomic number
+            draw_text(280, y_pos, E[i][2])      # element symbol
+        elif current_sort == sort_by.symbol:
+            draw_text(20, y_pos, E[i][2])      # element symbol
+            draw_text(65, y_pos, E[i][0])       # element name
+            draw_text(280, y_pos, str(E[i][1])) # atomic number
 def sort_elements(sort_by):
     global E, current_sort
     current_sort = sort_by
@@ -372,8 +384,12 @@ options = []
 menu_selected = 0
 return_to = state.table
 callback = None # eh, just in case
+alpha = False
 while True:
     key = getKey(0)
+    if key == 31:
+        alpha = not alpha
+        stuff_drawn = False
     if current_state == state.splash:
         if not stuff_drawn:
             #draw static text, of course
@@ -599,6 +615,7 @@ while True:
                 list_start = selected
             current_sort = sort_by.atomic_number
             current_state = state.list
+            key = 0
     if current_state == state.list:# ai polished, it failed, and then i ended up doing debugging and patching myself lol
         
         if 'list_start' not in globals():
@@ -627,14 +644,24 @@ while True:
         
         if key == 25: # up
             if selected > 1:
-                selected -= 1
+                if alpha:
+                    alpha = False
+                    selected -= 10
+                    selected = max(selected, 1)
+                else:
+                    selected -= 1
                 if selected < list_start:
                     list_start = selected
                 stuff_drawn = False
                 
         elif key == 34: # down
             if selected < len(E) - 1:
-                selected += 1
+                if alpha:
+                    alpha = False
+                    selected += 10
+                    selected = min(selected, len(E) - 1)
+                else:
+                    selected += 1
                 if selected >= list_start + items:
                     list_start = selected - items + 1
                 stuff_drawn = False
@@ -662,7 +689,10 @@ while True:
             title = "SORT ELEMENTS BY:"
             stuff_drawn = False
             clear()
-
+        elif key == 105: #enter, go to info panel
+            clear()
+            current_state = state.info
+            stuff_drawn = False
         elif key in numbers:
             if current_sort == sort_by.atomic_number:
                 prev_jmp_str = jmp_str
@@ -681,12 +711,14 @@ while True:
         if not stuff_drawn:
             set_color(0, 0, 0)
             draw_rect(5, 3, 310, 30)
-            set_color(200,255,200) # mint looks good on title box i guess
+            set_color(200,200,255) # blue color instead
             fill_rect(5, 3, 310, 30)
             draw_text_row(30, "middle", title)
             # draw the options list below the title
             for i, option in enumerate(options):
                 draw_text_row(60 + i * 22, 30, "%s:%s"%(i+1, option), is_selected=(i == menu_selected))
+            drawSoftkey(1,1,"OK")
+            drawSoftkey(1,5,"ESC")
             stuff_drawn = True
             
         if key == 25: # up
@@ -697,10 +729,13 @@ while True:
             if menu_selected < len(options) - 1:
                 menu_selected += 1
                 stuff_drawn = False
-        elif key == 105: # enter
+        elif key in (105, 11): # enter
             # handle the selection of the current option
             selected_option = options[menu_selected]
             stuff_drawn = False
             current_state = return_to
             clear()
-        
+        elif key == 15:
+            current_state = return_to
+            stuff_drawn = False
+            clear()
