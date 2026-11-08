@@ -140,7 +140,6 @@ tm = (
 ) # transition metals
 lan = tuple(range(57, 72)) # lanthanides (57-71)
 act = tuple(range(89, 104)) # actinides (89-103)
-
 class state:
     table = 0
     info = 1
@@ -160,7 +159,23 @@ class type:
     density = 9
     phase_at_room_temp = 10
     year_discovered = 11
-
+class sort_by:
+    atomic_number = 0
+    name = 1
+    symbol = 2
+    atomic_mass = 3
+numbers = { #keypad keycode to number
+    72: 7,
+    73: 8,
+    74: 9,
+    82: 4,
+    83: 5,
+    84: 6,
+    92: 1,
+    93: 2,
+    94: 3,
+    102: 0
+}
 size=17
 sx=6
 sy=7
@@ -305,6 +320,38 @@ def draw_text_row(y, align, text, is_selected, height=18):
 def replace_text_selection(prev, new):
     draw_text_row(60, ":", info_rows[prev], False)
     draw_text_row(60, ":", info_rows[new], True)
+def draw_list(start, end, selected): # more AI polishing lol
+    if start > end or selected < start or selected > end or start < 1 or end > 118:
+        raise ValueError("Invalid range or selected index, selected=%d, start=%d, end=%d" % (selected, start, end))
+    
+    
+    for i in range(start, end + 1):
+        y_pos = 22 + (i - start) * 20
+        
+        if i == selected:
+            set_color(0, 0, 0)
+            fill_rect(10, y_pos -18, 300, 22)
+            set_color(255, 255, 255)
+        else:
+            set_color(255, 255, 255)
+            fill_rect(10, y_pos -18, 300, 22)
+            set_color(0, 0, 0)
+            
+        draw_text(25, y_pos, str(E[i][1])) # atomic number
+        draw_text(65, y_pos, E[i][0])       # element name
+        draw_text(280, y_pos, E[i][2])      # element symbol
+def sort_elements(sort_by):
+    global E, current_sort
+    current_sort = sort_by
+
+    if sort_by == 0:  # Sort by atomic number
+        E = sorted(E, key=lambda x: int(x[1]))
+    elif sort_by == 1:  # Sort by name
+        E = sorted(E, key=lambda x: x[0])
+    elif sort_by == 2:  # Sort by symbol
+        E = sorted(E, key=lambda x: x[2])
+        
+
 
 prev_selected = 0
 selected = 1
@@ -314,6 +361,9 @@ stuff_drawn = False
 prev_list_pos = 0
 list_pos = 0
 selectable = True
+current_sort = sort_by.atomic_number
+jmp_str = ""
+items = 9
 while True:
     key = getKey(0)
     if current_state == state.splash:
@@ -426,8 +476,14 @@ while True:
             #todo
             pass
         if key == 13: # zoom
-            #todo
-            pass
+            # go to the list
+            clear()
+            current_state = state.list
+            if selected > len(E) - items:
+                list_start = len(E) - items
+            else:
+                list_start = selected
+            stuff_drawn = False
         if key == 14: # trace
             #splash screen
             clear()
@@ -523,3 +579,70 @@ while True:
             stuff_drawn = False
             clear()
             current_state = state.table
+        if key == 13:
+            text_drawn = False
+            stuff_drawn = False
+            clear()
+            if selected > len(E) - items:
+                list_start = len(E) - items
+            else:
+                list_start = selected
+            current_state = state.list
+    if current_state == state.list:# ai polished, it failed, and then i ended up doing debugging and patching myself lol
+        
+        if 'list_start' not in globals():
+            list_start = 1
+            
+        if not stuff_drawn:
+            draw_list(list_start, min(list_start + items - 1, len(E) - 1), selected)
+            set_color(0, 0, 0)
+            if current_sort == sort_by.atomic_number:
+                drawSoftkey(3, 1, "RESET") 
+            drawSoftkey(1, 3, "SORT")
+            drawSoftkey(1, 4, "TBL")
+            drawSoftkey(1, 5, "QUIT")
+            set_pen("thin","solid")
+            set_color(0, 0, 0)
+            draw_rect(5, 3, 310, 184)
+            stuff_drawn = True
+        
+        if key == 25: # up
+            if selected > 1:
+                selected -= 1
+                if selected < list_start:
+                    list_start = selected
+                stuff_drawn = False
+                
+        elif key == 34: # down
+            if selected < len(E) - 1:
+                selected += 1
+                if selected >= list_start + items:
+                    list_start = selected - items + 1
+                stuff_drawn = False
+                
+        elif key == 11 and current_sort == sort_by.atomic_number:
+            selected = 1
+            list_start = 1
+            jmp_str = ""
+            prev_jmp_str = ""
+            stuff_drawn = False
+            clear()
+            
+        elif key == 14:
+            stuff_drawn = False
+            clear()
+            current_state = state.table
+            
+        elif key == 15:
+            break
+        elif key in numbers:
+            prev_jmp_str = jmp_str
+            jmp_str += str(numbers[key])
+            if jmp_str == "0":
+                jmp_str = prev_jmp_str
+            elif 1 <= int(jmp_str) <= len(E) - 1:
+                selected = int(jmp_str)
+                list_start = min(selected, len(E) - items)
+                stuff_drawn = False
+            else:
+                jmp_str = prev_jmp_str
